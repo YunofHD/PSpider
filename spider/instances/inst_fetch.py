@@ -8,7 +8,7 @@ import time
 import random
 import logging
 import requests
-from ..utilities import CONFIG_FETCH_MESSAGE, get_dict_buildin
+from ..utilities import CONFIG_FETCH_MESSAGE, get_dict_buildin  # '.'从上层目录的某个文件夹导入
 
 
 class Fetcher(object):
