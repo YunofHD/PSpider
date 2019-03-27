@@ -14,7 +14,7 @@ class UrlFilter(object):
     class of UrlFilter, to filter url by regexs and (bloomfilter or set)
     """
 
-    def __init__(self, black_patterns=(CONFIG_URL_ILLEGAL_PATTERN,), white_patterns=(CONFIG_URL_LEGAL_PATTERN,), capacity=None):
+    def __init__(self, black_patterns=(CONFIG_URL_ILLEGAL_PATTERN,), white_patterns=(CONFIG_URL_LEGAL_PATTERN,), capacity=None):  # capacity 容量
         """
         constructor, use the instance of BloomFilter if capacity else the instance of set
         """
@@ -60,5 +60,5 @@ class UrlFilter(object):
                 result = url not in self._url_set
                 self._url_set.add(url)
             else:
-                result = not self._bloom_filter.add(url)
+                result = not self._bloom_filter.add(url)  # 布隆过滤器和set()集合的用法有区别
         return result

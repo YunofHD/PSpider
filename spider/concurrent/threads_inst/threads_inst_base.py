@@ -17,7 +17,7 @@ class TPEnum(enum.Enum):
     """
     TASKS_RUNNING = "tasks_running"         # flag of tasks_running
 
-    URL_FETCH = "url_fetch"                 # flag of url_fetch **
+    URL_FETCH = "url_fetch"                 # flag of url_fetch ** 很单纯的名字，没有别的含义，下同
     URL_FETCH_NOT = "url_fetch_not"         # flag of url_fetch_not
     URL_FETCH_SUCC = "url_fetch_succ"       # flag of url_fetch_succ
     URL_FETCH_FAIL = "url_fetch_fail"       # flag of url_fetch_fail
@@ -128,4 +128,4 @@ def work_monitor(self):
     return not (self._pool.get_thread_stop_flag() and self._pool.is_all_tasks_done())
 
 
-MonitorThread = type("MonitorThread", (BaseThread, ), dict(__init__=init_monitor_thread, working=work_monitor))
+MonitorThread = type("MonitorThread", (BaseThread, ), dict(__init__=init_monitor_thread, working=work_monitor))  #  class type(name, bases, dict) With three arguments, return a new type object.

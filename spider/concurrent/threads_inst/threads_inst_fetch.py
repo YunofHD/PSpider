@@ -14,7 +14,7 @@ class FetchThread(BaseThread):
     class of FetchThread, as the subclass of BaseThread
     """
 
-    def __init__(self, name, worker, pool, max_count=500):
+    def __init__(self, name, worker, pool, max_count=500):  # name线程名称，模块名称，pool是threadpool，
         """
         constructor
         """
