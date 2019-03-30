@@ -38,7 +38,7 @@ class Fetcher(object):
         time.sleep(random.randint(0, self._sleep_time))
         try:
             fetch_state, fetch_result, proxies_state = self.url_fetch(priority, url, keys, deep, repeat, proxies=proxies)
-        except Exception as excep:
+        except Exception as excep:                              # 抓取出现问题抛出异常，对重复次数进行逻辑判断
             if repeat >= self._max_repeat:
                 fetch_state, fetch_result, proxies_state = -1, None, -1
                 logging.error("%s error: %s, %s", self.__class__.__name__, excep, CONFIG_FETCH_MESSAGE % (priority, get_dict_buildin(keys), deep, repeat, url))
