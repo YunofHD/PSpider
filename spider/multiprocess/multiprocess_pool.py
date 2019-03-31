@@ -112,25 +112,25 @@ class MultiprocessPool(object):
 
     def wait_for_finished(self):
         """
-        wait for the finished of this thread pool
+        wait for the finished of this Multiprocess pool
         """
         logging.info("%s waits for finishing", self.__class__.__name__)
-        self._thread_stop_flag = True
+        self._multiprocess_stop_flag = True
 
-        for thread in filter(lambda x: x.is_alive(), self._thread_fetcher_list):
-            thread.join()
+        for Process in filter(lambda x: x.is_alive(), self._multiprocess_fetcher_list):
+            Process.join()
 
-        if self._thread_parser and self._thread_parser.is_alive():
-            self._thread_parser.join()
+        if self._multiprocess_parser and self._multiprocess_parser.is_alive():
+            self._multiprocess_parser.join()
 
-        if self._thread_saver and self._thread_saver.is_alive():
-            self._thread_saver.join()
+        if self._multiprocess_saver and self._multiprocess_saver.is_alive():
+            self._multiprocess_saver.join()
 
-        if self._thread_proxieser and self._thread_proxieser.is_alive():
-            self._thread_proxieser.join()
+        if self._multiprocess_proxieser and self._multiprocess_proxieser.is_alive():
+            self._multiprocess_proxieser.join()
 
-        if self._thread_monitor and self._thread_monitor.is_alive():
-            self._thread_monitor.join()
+        if self._multiprocess_monitor and self._multiprocess_monitor.is_alive():
+            self._multiprocess_monitor.join()
 
         logging.info("%s has finished", self.__class__.__name__)
         return self._number_dict
@@ -138,15 +138,15 @@ class MultiprocessPool(object):
     # ================================================================================================================================
     def get_proxies_flag(self):
         """
-        get the proxies flag of this thread pool
+        get the proxies flag of this multiprocess pool
         """
         return True if self._inst_proxieser else False
 
     def get_thread_stop_flag(self):
         """
-        get the threads' stop flag of this thread pool
+        get the process' stop flag of this multiprocess pool
         """
-        return self._thread_stop_flag
+        return self._multiprocess_stop_flag
 
     def get_number_dict(self, key=None):
         """
@@ -180,13 +180,13 @@ class MultiprocessPool(object):
             self._queue_fetch.put_nowait(task_content)
             self.update_number_dict(TPEnum.URL_FETCH_NOT, +1)
             self.update_number_dict(TPEnum.URL_FETCH_COUNT, +1)
-        elif (task_name == TPEnum.HTM_PARSE) and self._thread_parser:
+        elif (task_name == TPEnum.HTM_PARSE) and self._multiprocess_parser:
             self._queue_parse.put_nowait(task_content)
             self.update_number_dict(TPEnum.HTM_PARSE_NOT, +1)
-        elif (task_name == TPEnum.ITEM_SAVE) and self._thread_saver:
+        elif (task_name == TPEnum.ITEM_SAVE) and self._multiprocess_saver:
             self._queue_save.put_nowait(task_content)
             self.update_number_dict(TPEnum.ITEM_SAVE_NOT, +1)
-        elif (task_name == TPEnum.PROXIES) and self._thread_proxieser:
+        elif (task_name == TPEnum.PROXIES) and self._multiprocess_proxieser:
             self._queue_proxies.put_nowait(task_content)
             self.update_number_dict(TPEnum.PROXIES_LEFT, +1)
         return
