@@ -81,52 +81,62 @@ class BaseMultiprocess(multiprocessing.Process):
 
 
 # ===============================================================================================================================
-def init_monitor_process(self, name, pool, daemon):
-    """
-    constructor of MonitorProcess
-    """
-    BaseMultiprocess.__init__(self, name, None, pool, daemon)
-    self._init_time = time.time()
+class MonitorProcess(BaseMultiprocess):
+    def __init__(self, name, pool, daemon):
+        """
+        constructor of MonitorProcess
+        """
+        BaseMultiprocess.__init__(self, name, None, pool, daemon)
+        self._init_time = time.time()
 
-    self._last_fetch_num = 0
-    self._last_parse_num = 0
-    self._last_save_num = 0
-    return
+        self._last_fetch_num = 0
+        self._last_parse_num = 0
+        self._last_save_num = 0
+        return
 
+    def working(self):
+        """
+        monitor the multiprocess pool, auto running, and return False if you need stop multiprocess
+        """
+        time.sleep(5)
+        info = "running_tasks=%s;" % self._pool.get_number_dict(TPEnum.TASKS_RUNNING)
 
-def work_monitor(self):
-    """
-    monitor the multiprocess pool, auto running, and return False if you need stop multiprocess
-    """
-    time.sleep(5)
-    info = "running_tasks=%s;" % self._pool.get_number_dict(TPEnum.TASKS_RUNNING)
+        cur_fetch_not = self._pool.get_number_dict(TPEnum.URL_FETCH_NOT)
+        cur_fetch_succ = self._pool.get_number_dict(TPEnum.URL_FETCH_SUCC)
+        cur_fetch_fail = self._pool.get_number_dict(TPEnum.URL_FETCH_FAIL)
+        cur_fetch_all = cur_fetch_succ + cur_fetch_fail
+        info += " fetch:[NOT=%d, SUCC=%d, FAIL=%d, %d/5s];" % (cur_fetch_not, cur_fetch_succ, cur_fetch_fail, cur_fetch_all - self._last_fetch_num)
+        self._last_fetch_num = cur_fetch_all
 
-    cur_fetch_not = self._pool.get_number_dict(TPEnum.URL_FETCH_NOT)
-    cur_fetch_succ = self._pool.get_number_dict(TPEnum.URL_FETCH_SUCC)
-    cur_fetch_fail = self._pool.get_number_dict(TPEnum.URL_FETCH_FAIL)
-    cur_fetch_all = cur_fetch_succ + cur_fetch_fail
-    info += " fetch:[NOT=%d, SUCC=%d, FAIL=%d, %d/5s];" % (cur_fetch_not, cur_fetch_succ, cur_fetch_fail, cur_fetch_all-self._last_fetch_num)
-    self._last_fetch_num = cur_fetch_all
+        cur_parse_not = self._pool.get_number_dict(TPEnum.HTM_PARSE_NOT)
+        cur_parse_succ = self._pool.get_number_dict(TPEnum.HTM_PARSE_SUCC)
+        cur_parse_fail = self._pool.get_number_dict(TPEnum.HTM_PARSE_FAIL)
+        cur_parse_all = cur_parse_succ + cur_parse_fail
+        info += " parse:[NOT=%d, SUCC=%d, FAIL=%d, %d/5s];" % (cur_parse_not, cur_parse_succ, cur_parse_fail, cur_parse_all - self._last_parse_num)
+        self._last_parse_num = cur_parse_all
 
-    cur_parse_not = self._pool.get_number_dict(TPEnum.HTM_PARSE_NOT)
-    cur_parse_succ = self._pool.get_number_dict(TPEnum.HTM_PARSE_SUCC)
-    cur_parse_fail = self._pool.get_number_dict(TPEnum.HTM_PARSE_FAIL)
-    cur_parse_all = cur_parse_succ + cur_parse_fail
-    info += " parse:[NOT=%d, SUCC=%d, FAIL=%d, %d/5s];" % (cur_parse_not, cur_parse_succ, cur_parse_fail, cur_parse_all-self._last_parse_num)
-    self._last_parse_num = cur_parse_all
+        cur_save_not = self._pool.get_number_dict(TPEnum.ITEM_SAVE_NOT)
+        cur_save_succ = self._pool.get_number_dict(TPEnum.ITEM_SAVE_SUCC)
+        cur_save_fail = self._pool.get_number_dict(TPEnum.ITEM_SAVE_FAIL)
+        cur_save_all = cur_save_succ + cur_save_fail
+        info += " save:[NOT=%d, SUCC=%d, FAIL=%d, %d/5s];" % (cur_save_not, cur_save_succ, cur_save_fail, cur_save_all - self._last_save_num)
+        self._last_save_num = cur_save_all
 
-    cur_save_not = self._pool.get_number_dict(TPEnum.ITEM_SAVE_NOT)
-    cur_save_succ = self._pool.get_number_dict(TPEnum.ITEM_SAVE_SUCC)
-    cur_save_fail = self._pool.get_number_dict(TPEnum.ITEM_SAVE_FAIL)
-    cur_save_all = cur_save_succ + cur_save_fail
-    info += " save:[NOT=%d, SUCC=%d, FAIL=%d, %d/5s];" % (cur_save_not, cur_save_succ, cur_save_fail, cur_save_all-self._last_save_num)
-    self._last_save_num = cur_save_all
+        info += " proxies:[LEFT=%d, FAIL=%d];" % (self._pool.get_number_dict(TPEnum.PROXIES_LEFT),self._pool.get_number_dict(TPEnum.PROXIES_FAIL)) if self._pool.get_proxies_flag() else ""
+        info += " total_seconds=%d" % (time.time() - self._init_time)
 
-    info += " proxies:[LEFT=%d, FAIL=%d];" % (self._pool.get_number_dict(TPEnum.PROXIES_LEFT), self._pool.get_number_dict(TPEnum.PROXIES_FAIL)) if self._pool.get_proxies_flag() else ""
-    info += " total_seconds=%d" % (time.time() - self._init_time)
+        logging.info(info)
+        return not (self._pool.get_thread_stop_flag() and self._pool.is_all_tasks_done())
 
-    logging.info(info)
-    return not (self._pool.get_thread_stop_flag() and self._pool.is_all_tasks_done())
+    def __getstate__(self):
+        print("I'm being pickled")
+        state = self.__dict__.copy()
+        del state['_init_time']
+        del state['_pool']
+        del state['_worker']
+        return state
 
-
-MonitorProcess = type("MonitorProcess", (BaseMultiprocess, ), dict(__init__=init_monitor_process, working=work_monitor))  # class type(name, bases, dict) With three arguments, return a new type object.
+    def __setstate__(self, state):
+        print("I'm being pickled")
+        self.__dict__.update(state)
+        self._init_time = time.time()

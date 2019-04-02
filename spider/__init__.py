@@ -8,4 +8,5 @@ __version__ = "1.6.2"
 
 from .utilities import *
 from .concurrent import TPEnum, WebSpider
+from .multiprocess import MultiprocessWebSpider
 from .instances import Fetcher, Parser, Saver, Proxieser

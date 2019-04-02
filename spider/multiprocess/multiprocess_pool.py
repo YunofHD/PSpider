@@ -65,7 +65,7 @@ class MultiprocessPool(object):
 
         # set monitor thread
         self._multiprocess_monitor = MonitorProcess("monitor", self, True)  # 创建监控进程,True代表为守护进程
-        #self._multiprocess_monitor.setDaemon(True)
+        # self._multiprocess_monitor.setDaemon(True)
         self._multiprocess_monitor.start()
         logging.info("%s has been initialized", self.__class__.__name__)
         return
